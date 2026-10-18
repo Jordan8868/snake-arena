@@ -1,0 +1,20 @@
+# 依赖与构建产物
+node_modules/
+dist/
+mobile/build/
+desktop/SnakeArena.exe
+desktop/launcher.log
+desktop/WebView2Profile/
+
+# 本机工具链（JDK / Android SDK）
+tools/
+
+# 签名密钥：由 mobile/build-apk.ps1 首次构建时自动生成
+mobile/snake-arena.keystore
+
+# 临时文件
+.dsh-tmp/
+*.log
+*.idsig
+.DS_Store
+Thumbs.db

@@ -1,0 +1,20 @@
+# 依赖 & 构建产物
+node_modules/
+dist/
+build/
+out/
+
+# 本地工具链（Android SDK / JDK / 打包工具，约 1.2GB）
+tools/
+
+# 临时文件
+.dsh-tmp/
+*.zip
+*.apk
+*.nupkg
+*.log
+
+# 编辑器 / 系统
+.vscode/
+.DS_Store
+Thumbs.db

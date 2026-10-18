@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+  <meta name="theme-color" content="#04080b">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <title>蛇域争霸 · SNAKE ARENA</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23050d10'/%3E%3Cpath d='M14 38c8-18 14-18 20-6s10 8 16-6' fill='none' stroke='%233ff08a' stroke-width='7' stroke-linecap='round'/%3E%3Ccircle cx='17' cy='24' r='3' fill='%23eafff7'/%3E%3C/svg%3E">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="apple-touch-icon" href="apple-touch-icon.png">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div id="app">
+
+  <!-- ============================ 连接页 ============================ -->
+  <section id="connectScreen" class="screen connect-screen">
+    <div class="connect-bg" aria-hidden="true">
+      <span class="glow glow-a"></span>
+      <span class="glow glow-b"></span>
+      <span class="glow glow-c"></span>
+      <div class="bg-grid"></div>
+    </div>
+
+    <div class="connect-card">
+      <header class="brand">
+        <div class="brand-mark" aria-hidden="true">
+          <span></span>
+        </div>
+        <div class="brand-text">
+          <p class="eyebrow">LOCAL MULTIPLAYER ARENA</p>
+          <h1>SNAKE<span>ARENA</span></h1>
+          <p class="brand-cn">蛇域争霸</p>
+        </div>
+      </header>
+
+      <p class="lead">5 人同场 · 互相吞噬 · 一次复活 · 道具乱斗</p>
+
+      <div class="connect-form">
+        <div class="form-row">
+          <label class="field">
+            <span>你的昵称</span>
+            <input id="nameInput" maxlength="12" autocomplete="off" spellcheck="false" placeholder="输入昵称">
+          </label>
+          <label class="field" id="serverField">
+            <span>服务器地址 / 公网链接</span>
+            <input id="serverInput" inputmode="url" autocomplete="off" spellcheck="false" placeholder="192.168.1.10:31888 或 https://…">
+          </label>
+        </div>
+
+        <div class="field color-field">
+          <span>选择颜色</span>
+          <div class="color-picker" id="colorPicker"></div>
+        </div>
+
+        <button id="connectBtn" class="primary big" type="button">进入竞技场</button>
+        <button id="soloBtn" class="solo-entry" type="button">单人无尽 · 无需服务器</button>
+        <p id="connectStatus" class="status"></p>
+      </div>
+
+      <div class="connect-help">
+        <div>
+          <h3>怎么联机</h3>
+          <ol>
+            <li>房主在电脑上打开游戏，服务器会自动启动。</li>
+            <li>同一 Wi-Fi 的朋友：填大厅顶部的局域网地址。</li>
+            <li>外网朋友：填房主分享的 <code>https://…</code> 公网链接，或直接用浏览器打开该链接。</li>
+          </ol>
+        </div>
+        <div>
+          <h3>怎么操作</h3>
+          <ol>
+            <li>鼠标 / 手指控制方向，按住左键 / 空格加速。</li>
+            <li>撞上别人的身体会死；头对头时更大的蛇吞噬对方。</li>
+            <li>第一次死亡 3 秒后复活，之后淘汰。</li>
+          </ol>
+        </div>
+      </div>
+
+      <button class="sound-toggle" id="soundConnectBtn" type="button" aria-label="声音开关">♪ 声音开</button>
+    </div>
+  </section>
+
+  <!-- ============================ 房间页 ============================ -->
+  <section id="lobbyScreen" class="screen lobby-screen hidden">
+    <header class="lobby-header">
+      <div class="mini-brand">SNAKE<span>ARENA</span><em>蛇域争霸</em></div>
+      <button class="server-pill" id="serverPill" type="button" title="点击复制地址">
+        <span class="dot"></span><span id="serverPillText">正在连接</span>
+      </button>
+      <button id="leaveLobbyBtn" class="ghost-btn" type="button">离开</button>
+    </header>
+
+    <div class="lobby-body">
+      <section class="panel room-panel">
+        <div class="panel-head">
+          <h2>房间 <span id="roomCount">0 / 5</span></h2>
+          <span class="round-label" id="roundLabel">等待开局</span>
+        </div>
+
+        <div class="slots" id="playerSlots"></div>
+
+        <div class="lobby-actions">
+          <button id="startBtn" class="primary big" type="button" disabled>等待房主开始</button>
+          <p id="lobbyHint" class="status">最多 5 人 · 每局 4 分钟</p>
+        </div>
+
+        <div class="room-foot">
+          <span>复活机会 <b>1</b></span>
+          <span>地图 <b>4200 × 3000</b></span>
+          <span>道具 <b>5</b> 种</span>
+        </div>
+
+        <div class="wan-panel hidden" id="wanPanel">
+          <div class="wan-head">
+            <div>
+              <h3>外网联机</h3>
+              <p>不在同一 Wi-Fi 的朋友也能加入</p>
+            </div>
+            <span class="wan-state" id="wanState">未开启</span>
+          </div>
+          <p class="wan-hint" id="wanHint">生成一个临时公网地址。朋友用浏览器打开，或在手机 App 的服务器地址里粘贴这个链接。</p>
+          <button id="wanStartBtn" class="wan-start" type="button">生成公网地址</button>
+          <div class="wan-url hidden" id="wanUrlBox">
+            <code id="wanUrl"></code>
+            <div class="wan-url-actions">
+              <button id="wanCopyBtn" class="btn" type="button">复制链接</button>
+              <button id="wanStopBtn" class="ghost-btn" type="button">关闭隧道</button>
+            </div>
+          </div>
+          <p class="wan-note">免费隧道由 localhost.run 提供；只把链接发给朋友。最多 5 人，任何拿到链接的人都能加入。</p>
+        </div>
+      </section>
+
+      <aside class="panel rules-panel">
+        <h2>生存法则</h2>
+        <ul class="rules">
+          <li><b>吞噬</b><span>头对头碰撞时，体型更大的蛇直接吃掉对方；体型接近则同归于尽。</span></li>
+          <li><b>猎杀</b><span>头撞到别人的身体，你会死，对方获得击杀与质量。</span></li>
+          <li><b>复活</b><span>每人 1 次复活：第一次死亡 3 秒后自动复活，第二次死亡淘汰观战。</span></li>
+          <li><b>成长</b><span>吃能量豆变长；死亡会沿身体爆出大量能量豆，谁抢到归谁。</span></li>
+        </ul>
+
+        <h2>地图道具</h2>
+        <div class="powerup-grid" id="powerupList"></div>
+
+        <div class="mobile-tip" id="mobileTip">手机：拖动屏幕转向，右下角按钮加速。</div>
+      </aside>
+    </div>
+
+    <div id="countdownOverlay" class="countdown hidden">
+      <p class="eyebrow">ROUND STARTING</p>
+      <div id="countdownNum">5</div>
+      <p>所有人准备</p>
+    </div>
+  </section>
+
+  <!-- ============================ 游戏页 ============================ -->
+  <section id="gameScreen" class="screen game-screen hidden">
+    <canvas id="gameCanvas" aria-label="蛇域争霸游戏画面"></canvas>
+
+    <div class="hud">
+      <div class="hud-left">
+        <div class="stat-card">
+          <div class="stat"><span>得分</span><b id="hudScore">0</b></div>
+          <div class="stat"><span>长度</span><b id="hudMass">0</b></div>
+          <div class="stat stat-kills"><span>击杀</span><b id="hudKills">0</b></div>
+        </div>
+        <div class="lives" id="hudLives"></div>
+        <div class="buffs" id="hudBuffs"></div>
+      </div>
+
+      <div class="hud-right">
+        <div class="timer" id="hudTimer">04:00</div>
+        <div class="solo-meta hidden" id="soloMeta">
+          <span>单人无尽</span>
+          <b id="soloBest">最高 0</b>
+          <button id="soloExitBtn" type="button">退出</button>
+        </div>
+        <ol class="leaderboard" id="hudLeaderboard"></ol>
+      </div>
+
+      <div class="kill-feed" id="killFeed"></div>
+
+      <div class="minimap-box">
+        <canvas id="minimap" width="232" height="166"></canvas>
+        <span>MAP</span>
+      </div>
+
+      <div class="ping" id="hudPing">-- ms</div>
+
+      <button class="icon-btn sound-game" id="soundGameBtn" type="button" aria-label="声音开关">♪</button>
+
+      <div class="powerup-toast" id="powerupToast"></div>
+
+      <div class="death-banner hidden" id="deathBanner">
+        <p class="eyebrow" id="deathEyebrow">CAUGHT</p>
+        <h2 id="deathTitle">你被吞噬了</h2>
+        <p id="deathText">3 秒后复活</p>
+      </div>
+
+      <div class="spectate hidden" id="spectateBadge">观战中 · 等待下一轮</div>
+
+      <div class="disconnect hidden" id="disconnectBanner">
+        <span>连接已断开</span>
+        <button id="reconnectBtn" type="button">重新连接</button>
+      </div>
+
+      <button class="boost-btn hidden" id="boostBtn" type="button">
+        <span>加速</span>
+      </button>
+      <div class="touch-hint hidden" id="touchHint">拖动屏幕控制方向</div>
+    </div>
+
+    <div id="resultsScreen" class="results hidden">
+      <div class="results-card">
+        <p class="eyebrow">ROUND OVER</p>
+        <h2 id="resultsTitle">本轮结束</h2>
+        <p id="resultsSub" class="results-sub"></p>
+        <div id="resultsList" class="results-list"></div>
+        <p class="results-next" id="resultsNext">12 秒后回到房间</p>
+        <button id="resultsLeaveBtn" class="ghost-btn" type="button">离开房间</button>
+      </div>
+    </div>
+
+    <div id="soloOver" class="solo-over hidden">
+      <div class="solo-card">
+        <p class="eyebrow">ENDLESS OVER</p>
+        <h2>本局结束</h2>
+        <p class="solo-reason" id="soloReason">撞上了边界</p>
+        <div class="solo-stats">
+          <div><span>得分</span><b id="soloScore">0</b></div>
+          <div><span>长度</span><b id="soloMass">0</b></div>
+          <div><span>最高</span><b id="soloBestScore">0</b></div>
+        </div>
+        <button id="soloRestartBtn" class="primary big" type="button">再来一局</button>
+        <button id="soloBackBtn" class="ghost-btn" type="button">返回联机</button>
+      </div>
+    </div>
+  </section>
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>
